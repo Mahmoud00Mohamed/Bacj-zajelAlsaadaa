@@ -58,6 +58,8 @@ router.post("/logout", logout);
 // مسارات التحقق من الهاتف
 router.post("/send-phone-verification", authMiddleware, sendPhoneVerification);
 router.post("/verify-phone", authMiddleware, verifyPhoneNumber);
+router.post("/send-phone-verification-temp", sendPhoneVerificationTemp);
+router.post("/verify-phone-temp", verifyPhoneNumberTemp);
 router.post("/login-phone", loginWithPhone);
 router.post("/verify-phone-login", verifyPhoneLogin);
 

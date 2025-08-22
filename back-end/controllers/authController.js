@@ -36,10 +36,22 @@ export const googleAuthCallback = async (req, res) => {
     const user = req.user;
     console.log("Google OAuth user:", user._id);
     
+    // التحقق من وجود رقم الهاتف موثق
+    if (!user.phoneNumber || !user.isPhoneVerified) {
+      console.log("User needs phone verification");
+      // إنشاء temporary token للمستخدم لإكمال التسجيل
+      const tempToken = generateAccessToken(user._id);
+      
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/auth/verify-phone?tempToken=${tempToken}&fromGoogle=true`
+      );
+    }
+    
+    // إذا كان رقم الهاتف موثق، إكمال تسجيل الدخول
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
 
-    // تخزين refreshToken في Redis
+    // تخزين refreshToken في Redis مع fallback
     try {
       await redis.set(
         `refreshToken:${user._id}`,
@@ -49,8 +61,10 @@ export const googleAuthCallback = async (req, res) => {
       );
       console.log("Refresh token stored in Redis successfully");
     } catch (redisError) {
-      console.error("Redis error:", redisError);
-      // Continue without Redis if it fails
+      console.warn("Redis not available, storing refresh token in user document");
+      // Fallback: store in user document
+      user.refreshToken = refreshToken;
+      await user.save();
     }
 
     // إعداد الكوكيز
@@ -128,12 +142,21 @@ export const login = async (req, res) => {
 
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
-    await redis.set(
-      `refreshToken:${user._id}`,
-      refreshToken,
-      "EX",
-      30 * 24 * 60 * 60
-    );
+    
+    // تخزين refreshToken مع fallback
+    try {
+      await redis.set(
+        `refreshToken:${user._id}`,
+        refreshToken,
+        "EX",
+        30 * 24 * 60 * 60
+      );
+    } catch (redisError) {
+      console.warn("Redis not available, storing refresh token in user document");
+      user.refreshToken = refreshToken;
+      await user.save();
+    }
+    
     res.cookie("refreshToken", refreshToken, {
       httpOnly: !0,
       secure: !0,
@@ -159,14 +182,34 @@ export const verifyEmail = async (req, res) => {
     user.isVerified = !0;
     user.verificationCode = undefined;
     await user.save();
+    
+    // التحقق من وجود رقم الهاتف
+    if (!user.phoneNumber || !user.isPhoneVerified) {
+      return res.status(200).json({
+        message: " Email verified successfully. Please add and verify your phone number to complete registration.",
+        requiresPhoneVerification: true,
+        userId: user._id
+      });
+    }
+    
+    // إذا كان رقم الهاتف موثق، إكمال تسجيل الدخول
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
-    await redis.set(
-      `refreshToken:${user._id}`,
-      refreshToken,
-      "EX",
-      30 * 24 * 60 * 60
-    );
+    
+    // تخزين refreshToken مع fallback
+    try {
+      await redis.set(
+        `refreshToken:${user._id}`,
+        refreshToken,
+        "EX",
+        30 * 24 * 60 * 60
+      );
+    } catch (redisError) {
+      console.warn("Redis not available, storing refresh token in user document");
+      user.refreshToken = refreshToken;
+      await user.save();
+    }
+    
     res.cookie("refreshToken", refreshToken, {
       httpOnly: !0,
       secure: !0,
@@ -174,7 +217,7 @@ export const verifyEmail = async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
     res.status(200).json({
-      message: " Email successfully verified.",
+      message: " Registration completed successfully.",
       accessToken,
     });
   } catch (err) {
@@ -247,7 +290,19 @@ export const logout = async (req, res) => {
     } catch (err) {
       return res.status(401).json({ message: " Invalid Refresh Token." });
     }
-    await redis.del(`refreshToken:${decoded.userId}`);
+    
+    // حذف الـ refresh token مع fallback
+    try {
+      await redis.del(`refreshToken:${decoded.userId}`);
+    } catch (redisError) {
+      console.warn("Redis not available, clearing refresh token from user document");
+      const user = await User.findById(decoded.userId);
+      if (user) {
+        user.refreshToken = undefined;
+        await user.save();
+      }
+    }
+    
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: true,
@@ -301,21 +356,44 @@ export const refreshAccessToken = async (req, res) => {
         .status(401)
         .json({ message: "Invalid or expired Refresh Token." });
     }
-    const storedToken = await redis.get(`refreshToken:${decoded.userId}`);
+    
+    // التحقق من الـ refresh token مع fallback
+    let storedToken = null;
+    try {
+      storedToken = await redis.get(`refreshToken:${decoded.userId}`);
+    } catch (redisError) {
+      console.warn("Redis not available, checking user document");
+      const user = await User.findById(decoded.userId);
+      storedToken = user?.refreshToken;
+    }
+    
     if (!storedToken || storedToken !== refreshToken) {
-      console.log("Stored token mismatch or not found in Redis");
+      console.log("Stored token mismatch or not found");
       return res
         .status(401)
         .json({ message: "Invalid or expired Refresh Token." });
     }
+    
     const newAccessToken = generateAccessToken(decoded.userId);
     const newRefreshToken = generateRefreshToken(decoded.userId);
-    await redis.set(
-      `refreshToken:${decoded.userId}`,
-      newRefreshToken,
-      "EX",
-      30 * 24 * 60 * 60
-    );
+    
+    // تخزين الـ refresh token الجديد مع fallback
+    try {
+      await redis.set(
+        `refreshToken:${decoded.userId}`,
+        newRefreshToken,
+        "EX",
+        30 * 24 * 60 * 60
+      );
+    } catch (redisError) {
+      console.warn("Redis not available, storing refresh token in user document");
+      const user = await User.findById(decoded.userId);
+      if (user) {
+        user.refreshToken = newRefreshToken;
+        await user.save();
+      }
+    }
+    
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: true,
@@ -450,6 +528,39 @@ export const verifyPhoneNumber = async (req, res) => {
     user.lastPhoneVerificationTime = undefined;
     await user.save();
 
+    // إذا كان المستخدم قد تحقق من البريد الإلكتروني أيضاً، إكمال التسجيل
+    if (user.isVerified) {
+      const accessToken = generateAccessToken(user._id);
+      const refreshToken = generateRefreshToken(user._id);
+      
+      // تخزين refreshToken مع fallback
+      try {
+        await redis.set(
+          `refreshToken:${user._id}`,
+          refreshToken,
+          "EX",
+          30 * 24 * 60 * 60
+        );
+      } catch (redisError) {
+        console.warn("Redis not available, storing refresh token in user document");
+        user.refreshToken = refreshToken;
+        await user.save();
+      }
+      
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+      });
+      
+      return res.status(200).json({
+        message: "Registration completed successfully.",
+        accessToken,
+        registrationComplete: true
+      });
+    }
+
     res.status(200).json({
       message: "Phone number verified successfully.",
       phoneNumber: user.phoneNumber.replace(
@@ -536,12 +647,19 @@ export const verifyPhoneLogin = async (req, res) => {
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
 
-    await redis.set(
-      `refreshToken:${user._id}`,
-      refreshToken,
-      "EX",
-      30 * 24 * 60 * 60
-    );
+    // تخزين refreshToken مع fallback
+    try {
+      await redis.set(
+        `refreshToken:${user._id}`,
+        refreshToken,
+        "EX",
+        30 * 24 * 60 * 60
+      );
+    } catch (redisError) {
+      console.warn("Redis not available, storing refresh token in user document");
+      user.refreshToken = refreshToken;
+      await user.save();
+    }
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
