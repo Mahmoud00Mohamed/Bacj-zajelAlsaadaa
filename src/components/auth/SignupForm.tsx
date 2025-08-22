@@ -8,6 +8,7 @@ import {
   Lock,
   Eye,
   EyeOff,
+  Phone,
   ArrowRight,
   ArrowLeft,
   UserPlus,

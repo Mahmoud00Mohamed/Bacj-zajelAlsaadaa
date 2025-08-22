@@ -193,9 +193,23 @@ export const verifyEmail = async (req, res) => {
       sameSite: "None",
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
+    
+    // إرسال رمز التحقق للهاتف تلقائياً إذا كان موجوداً
+    if (user.tempPhoneNumber) {
+      try {
+        await sendOTP(user.tempPhoneNumber);
+        console.log("Phone verification code sent automatically after email verification");
+      } catch (phoneError) {
+        console.warn("Failed to send phone verification automatically:", phoneError);
+      }
+    }
+    
     res.status(200).json({
-      message: " Email successfully verified.",
+      message: user.tempPhoneNumber 
+        ? " Email verified. Please verify your phone number to complete account setup."
+        : " Email successfully verified.",
       accessToken,
+      requiresPhoneVerification: !!user.tempPhoneNumber,
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -397,17 +411,18 @@ export const sendPhoneVerification = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    if (user.isPhoneVerified) {
-      return res
-        .status(400)
-        .json({ message: "Phone number already verified." });
+    // السماح بإعادة إرسال الرمز حتى لو كان الرقم موثقاً (في حالة تغيير الرقم)
+    const targetPhoneNumber = phoneNumber || user.tempPhoneNumber;
+    
+    if (!targetPhoneNumber) {
+      return res.status(400).json({ message: "Phone number is required." });
     }
 
     // التحقق من صحة رقم الهاتف
-    User.isValidPhoneNumber(phoneNumber);
+    User.isValidPhoneNumber(targetPhoneNumber);
 
     // التحقق من عدم ارتباط الرقم بحساب آخر
-    const existingUser = await User.findOne({ phoneNumber });
+    const existingUser = await User.findOne({ phoneNumber: targetPhoneNumber });
     if (existingUser && existingUser._id.toString() !== userId) {
       return res
         .status(400)
@@ -437,7 +452,7 @@ export const sendPhoneVerification = async (req, res) => {
     }
 
     // إرسال رمز OTP
-    const otpResult = await sendOTP(phoneNumber);
+    const otpResult = await sendOTP(targetPhoneNumber);
 
     if (!otpResult.success) {
       return res
@@ -446,7 +461,9 @@ export const sendPhoneVerification = async (req, res) => {
     }
 
     // تحديث بيانات المستخدم
-    user.tempPhoneNumber = phoneNumber;
+    if (phoneNumber) {
+      user.tempPhoneNumber = phoneNumber;
+    }
     user.phoneVerificationAttempts = Math.min(
       user.phoneVerificationAttempts + 1,
       maxAttempts
@@ -456,7 +473,7 @@ export const sendPhoneVerification = async (req, res) => {
 
     res.status(200).json({
       message: "Verification code sent successfully.",
-      phoneNumber: phoneNumber.replace(/(\+\d{1,3})\d+(\d{4})/, "$1****$2"), // إخفاء جزء من الرقم
+      phoneNumber: targetPhoneNumber.replace(/(\+\d{1,3})\d+(\d{4})/, "$1****$2"), // إخفاء جزء من الرقم
     });
   } catch (err) {
     res.status(400).json({ message: err.message });

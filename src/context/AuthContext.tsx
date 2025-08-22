@@ -182,7 +182,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (response.ok) {
         localStorage.setItem("accessToken", data.accessToken);
         await checkAuthStatus();
-        showSuccess("تم التحقق من البريد الإلكتروني", data.message);
+        if (data.requiresPhoneVerification) {
+          showSuccess("تم التحقق من البريد الإلكتروني", "الآن يجب تفعيل رقم الهاتف لإكمال إنشاء الحساب");
+        } else {
+          showSuccess("تم التحقق من البريد الإلكتروني", data.message);
+        }
       } else {
         throw new Error(data.message || "فشل في التحقق من البريد الإلكتروني");
       }
@@ -287,7 +291,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const sendPhoneVerification = async (phoneNumber: string) => {
+  const sendPhoneVerification = async (phoneNumber?: string) => {
     try {
       const token = localStorage.getItem("accessToken");
       const response = await fetch(`${API_BASE_URL}/send-phone-verification`, {
@@ -297,7 +301,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ phoneNumber }),
+        body: JSON.stringify(phoneNumber ? { phoneNumber } : {}),
       });
 
       const data = await response.json();
@@ -330,7 +334,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (response.ok) {
         await checkAuthStatus();
-        showSuccess("تم التحقق من رقم الهاتف", data.message);
+        showSuccess(
+          "تم إنشاء الحساب بنجاح!", 
+          "مرحباً بك في زاجل السعادة. تم تفعيل حسابك بالكامل."
+        );
       } else {
         throw new Error(data.message || "فشل في التحقق من رقم الهاتف");
       }

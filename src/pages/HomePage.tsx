@@ -24,11 +24,23 @@ const MagicGiftSection = lazy(
   () => import("../components/home/MagicGiftSection")
 );
 
+import { useLocation } from 'react-router-dom';
+import { useToast } from '../context/ToastContext';
+
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
+  const location = useLocation();
+  const { showSuccess } = useToast();
 
   React.useEffect(() => {
     document.title = t("meta.title");
+    
+    // عرض رسالة ترحيب للمستخدمين الجدد
+    if (location.state?.message) {
+      showSuccess("مرحباً بك!", location.state.message);
+      // مسح الرسالة من الحالة
+      window.history.replaceState({}, document.title);
+    }
   }, [t]);
 
   return (
