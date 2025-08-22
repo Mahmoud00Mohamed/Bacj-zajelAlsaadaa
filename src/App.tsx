@@ -7,6 +7,7 @@ import { ToastProvider } from "./context/ToastContext";
 import { AuthProvider } from "./context/AuthContext";
 import { UserProvider } from "./context/UserContext";
 import { imageCache } from "./components/ui/ImageCache";
+import { RecaptchaProvider } from "./components/ui/RecaptchaProvider";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import BottomNavigation from "./components/layout/BottomNavigation";
@@ -69,139 +70,141 @@ function App() {
 
   return (
     <ToastProvider>
-      <AuthProvider>
-        <UserProvider>
-          <FavoritesProvider>
-            <CartProvider>
-              <div
-                className={`min-h-screen flex flex-col ${
-                  i18n.language === "ar" ? "font-sans-ar" : "font-sans-en"
-                } overflow-x-hidden`}
-                style={{ scrollBehavior: "smooth" }}
-              >
-                <Header />
-                <main className="flex-grow pb-16 md:pb-0">
-                  <Suspense
-                    fallback={
-                      <div className="flex justify-center items-center min-h-screen">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                      </div>
-                    }
-                  >
-                    <Routes>
-                      <Route path="/" element={<HomePage />} />
-                      <Route path="/categories" element={<CategoryPage />} />
-                      <Route path="/category/:slug" element={<CategoryPage />} />
-                      <Route path="/product/:id" element={<ProductPage />} />
-                      <Route path="/products" element={<ProductsPage />} />
-                      <Route path="/cart" element={<CartPage />} />
-                      <Route path="/about" element={<AboutPage />} />
-                      <Route path="/contact" element={<ContactPage />} />
-                      <Route path="/faq" element={<FAQPage />} />
-                      <Route path="/delivery" element={<DeliveryPage />} />
-                      <Route path="/occasions" element={<OccasionsPage />} />
-                      <Route path="/occasion/:slug" element={<OccasionsPage />} />
-                      <Route path="/brands" element={<BrandsPage />} />
-                      <Route path="/special-gifts" element={<SpecialGiftsPage />} />
-                      <Route
-                        path="/notifications"
-                        element={<NotificationsPage />}
-                      />
-                      <Route path="/favorites" element={<FavoritesPage />} />
-                      <Route path="/packages" element={<PackagesPage />} />
-                      <Route
-                        path="/gift-assistant"
-                        element={<GiftAssistantPage />}
-                      />
-                      
-                      {/* Auth Routes - Only for non-authenticated users */}
-                      <Route 
-                        path="/auth/login" 
-                        element={
-                          <ProtectedRoute requireAuth={false}>
-                            <LoginPage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route 
-                        path="/auth/signup" 
-                        element={
-                          <ProtectedRoute requireAuth={false}>
-                            <SignupPage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route 
-                        path="/auth/verify-email" 
-                        element={
-                          <ProtectedRoute requireAuth={false}>
-                            <EmailVerificationPage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route 
-                        path="/auth/forgot-password" 
-                        element={
-                          <ProtectedRoute requireAuth={false}>
-                            <ForgotPasswordPage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route 
-                        path="/auth/reset-password" 
-                        element={
-                          <ProtectedRoute requireAuth={false}>
-                            <ResetPasswordPage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route 
-                        path="/auth/verify-phone" 
-                        element={
-                          <ProtectedRoute>
-                            <PhoneVerificationPage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route 
-                        path="/auth/verify-phone-login" 
-                        element={
-                          <ProtectedRoute requireAuth={false}>
-                            <PhoneLoginVerificationPage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
-                      
-                      {/* User Routes - Only for authenticated users */}
-                      <Route 
-                        path="/profile" 
-                        element={
-                          <ProtectedRoute>
-                            <ProfilePage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route 
-                        path="/orders" 
-                        element={
-                          <ProtectedRoute>
-                            <OrdersPage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route path="*" element={<NotFoundPage />} />
-                    </Routes>
-                  </Suspense>
-                </main>
-                <Footer />
-                <BottomNavigation />
-              </div>
-            </CartProvider>
-          </FavoritesProvider>
-        </UserProvider>
-      </AuthProvider>
+      <RecaptchaProvider>
+        <AuthProvider>
+          <UserProvider>
+            <FavoritesProvider>
+              <CartProvider>
+                <div
+                  className={`min-h-screen flex flex-col ${
+                    i18n.language === "ar" ? "font-sans-ar" : "font-sans-en"
+                  } overflow-x-hidden`}
+                  style={{ scrollBehavior: "smooth" }}
+                >
+                  <Header />
+                  <main className="flex-grow pb-16 md:pb-0">
+                    <Suspense
+                      fallback={
+                        <div className="flex justify-center items-center min-h-screen">
+                          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                        </div>
+                      }
+                    >
+                      <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/categories" element={<CategoryPage />} />
+                        <Route path="/category/:slug" element={<CategoryPage />} />
+                        <Route path="/product/:id" element={<ProductPage />} />
+                        <Route path="/products" element={<ProductsPage />} />
+                        <Route path="/cart" element={<CartPage />} />
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="/contact" element={<ContactPage />} />
+                        <Route path="/faq" element={<FAQPage />} />
+                        <Route path="/delivery" element={<DeliveryPage />} />
+                        <Route path="/occasions" element={<OccasionsPage />} />
+                        <Route path="/occasion/:slug" element={<OccasionsPage />} />
+                        <Route path="/brands" element={<BrandsPage />} />
+                        <Route path="/special-gifts" element={<SpecialGiftsPage />} />
+                        <Route
+                          path="/notifications"
+                          element={<NotificationsPage />}
+                        />
+                        <Route path="/favorites" element={<FavoritesPage />} />
+                        <Route path="/packages" element={<PackagesPage />} />
+                        <Route
+                          path="/gift-assistant"
+                          element={<GiftAssistantPage />}
+                        />
+                        
+                        {/* Auth Routes - Only for non-authenticated users */}
+                        <Route 
+                          path="/auth/login" 
+                          element={
+                            <ProtectedRoute requireAuth={false}>
+                              <LoginPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route 
+                          path="/auth/signup" 
+                          element={
+                            <ProtectedRoute requireAuth={false}>
+                              <SignupPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route 
+                          path="/auth/verify-email" 
+                          element={
+                            <ProtectedRoute requireAuth={false}>
+                              <EmailVerificationPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route 
+                          path="/auth/forgot-password" 
+                          element={
+                            <ProtectedRoute requireAuth={false}>
+                              <ForgotPasswordPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route 
+                          path="/auth/reset-password" 
+                          element={
+                            <ProtectedRoute requireAuth={false}>
+                              <ResetPasswordPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route 
+                          path="/auth/verify-phone" 
+                          element={
+                            <ProtectedRoute>
+                              <PhoneVerificationPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route 
+                          path="/auth/verify-phone-login" 
+                          element={
+                            <ProtectedRoute requireAuth={false}>
+                              <PhoneLoginVerificationPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
+                        
+                        {/* User Routes - Only for authenticated users */}
+                        <Route 
+                          path="/profile" 
+                          element={
+                            <ProtectedRoute>
+                              <ProfilePage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route 
+                          path="/orders" 
+                          element={
+                            <ProtectedRoute>
+                              <OrdersPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route path="*" element={<NotFoundPage />} />
+                      </Routes>
+                    </Suspense>
+                  </main>
+                  <Footer />
+                  <BottomNavigation />
+                </div>
+              </CartProvider>
+            </FavoritesProvider>
+          </UserProvider>
+        </AuthProvider>
+      </RecaptchaProvider>
     </ToastProvider>
   );
 }

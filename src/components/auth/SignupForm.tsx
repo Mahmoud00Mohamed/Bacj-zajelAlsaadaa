@@ -13,6 +13,9 @@ import {
   UserPlus,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { getRecaptchaToken } from "../../utils/recaptcha";
+import RecaptchaBadge from "../ui/RecaptchaBadge";
+import RecaptchaStatus from "./RecaptchaStatus";
 
 const SignupForm: React.FC = () => {
   const { i18n } = useTranslation();
@@ -29,7 +32,6 @@ const SignupForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [captchaToken] = useState("dummy-captcha-token");
   const [passwordStrength, setPasswordStrength] = useState(0);
 
   const calculatePasswordStrength = (password: string) => {
@@ -51,6 +53,8 @@ const SignupForm: React.FC = () => {
     setIsLoading(true);
 
     try {
+      // Get reCAPTCHA token before signup
+      const captchaToken = await getRecaptchaToken('signup');
       await signup(
         formData.name,
         formData.email,
@@ -62,6 +66,11 @@ const SignupForm: React.FC = () => {
       });
     } catch (error) {
       console.error("Signup error:", error);
+      // Handle reCAPTCHA specific errors
+      if (error instanceof Error && error.message.includes('reCAPTCHA')) {
+        // Show user-friendly reCAPTCHA error message
+        console.error('reCAPTCHA verification failed');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -300,6 +309,9 @@ const SignupForm: React.FC = () => {
             </Link>
           </p>
         </div>
+
+        <RecaptchaBadge />
+        <RecaptchaStatus />
       </motion.div>
     </div>
   );

@@ -12,6 +12,9 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { getRecaptchaToken } from "../../utils/recaptcha";
+import RecaptchaBadge from "../ui/RecaptchaBadge";
+import RecaptchaStatus from "./RecaptchaStatus";
 
 const API_BASE_URL = "https://localhost:3002/api/auth";
 
@@ -29,7 +32,6 @@ const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
-  const [captchaToken] = useState("dummy-captcha-token");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +39,8 @@ const LoginForm: React.FC = () => {
 
     try {
       if (loginMethod === "email") {
+        // Get reCAPTCHA token before login
+        const captchaToken = await getRecaptchaToken('login');
         await login(formData.email, formData.password, captchaToken);
         navigate("/");
       } else {
@@ -47,6 +51,11 @@ const LoginForm: React.FC = () => {
       }
     } catch (error) {
       console.error("Login error:", error);
+      // Handle reCAPTCHA specific errors
+      if (error instanceof Error && error.message.includes('reCAPTCHA')) {
+        // Show user-friendly reCAPTCHA error message
+        console.error('reCAPTCHA verification failed');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -286,6 +295,9 @@ const LoginForm: React.FC = () => {
             </Link>
           </p>
         </div>
+
+        <RecaptchaBadge />
+        <RecaptchaStatus />
       </motion.div>
     </div>
   );
