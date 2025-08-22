@@ -98,10 +98,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     captchaToken: string
   ) => {
     try {
-      if (!captchaToken) {
-        throw new Error('reCAPTCHA verification required');
-      }
-
       const response = await fetch(`${API_BASE_URL}/login`, {
         method: "POST",
         headers: {
@@ -133,10 +129,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     captchaToken: string
   ) => {
     try {
-      if (!captchaToken) {
-        throw new Error('reCAPTCHA verification required');
-      }
-
       const response = await fetch(`${API_BASE_URL}/signup`, {
         method: "POST",
         headers: {
