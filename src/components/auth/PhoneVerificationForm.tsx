@@ -4,15 +4,13 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
   Phone,
-  ArrowRight,
-  ArrowLeft,
   RefreshCw,
   CheckCircle,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const PhoneVerificationForm: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   const location = useLocation();
   const navigate = useNavigate();

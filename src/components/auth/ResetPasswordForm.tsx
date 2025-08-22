@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Lock, Eye, EyeOff, ArrowRight, ArrowLeft, Shield } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const ResetPasswordForm: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();

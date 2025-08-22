@@ -6,7 +6,7 @@ import { CheckCircle, AlertCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const GoogleCallbackPage: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

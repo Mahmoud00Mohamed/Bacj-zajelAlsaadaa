@@ -6,7 +6,7 @@ import { Mail, ArrowRight, ArrowLeft, Key, CheckCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const ForgotPasswordForm: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   const { requestPasswordReset } = useAuth();
 

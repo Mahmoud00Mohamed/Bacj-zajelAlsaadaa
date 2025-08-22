@@ -15,7 +15,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 
 const SignupForm: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   const navigate = useNavigate();
   const { signup } = useAuth();
@@ -29,7 +29,7 @@ const SignupForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState("dummy-captcha-token");
+  const [captchaToken] = useState("dummy-captcha-token");
   const [passwordStrength, setPasswordStrength] = useState(0);
 
   const calculatePasswordStrength = (password: string) => {

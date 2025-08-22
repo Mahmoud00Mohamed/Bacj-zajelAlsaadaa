@@ -13,8 +13,10 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
+const API_BASE_URL = "https://localhost:3002/api/auth";
+
 const LoginForm: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   const navigate = useNavigate();
   const { login, loginWithPhone } = useAuth();
@@ -27,7 +29,7 @@ const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
-  const [captchaToken, setCaptchaToken] = useState("dummy-captcha-token");
+  const [captchaToken] = useState("dummy-captcha-token");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
