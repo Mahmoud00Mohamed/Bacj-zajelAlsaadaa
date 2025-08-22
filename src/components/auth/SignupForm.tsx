@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
+import ReCAPTCHA from "react-google-recaptcha";
 import {
   User,
   Mail,
@@ -29,7 +30,7 @@ const SignupForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [captchaToken] = useState("dummy-captcha-token");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [passwordStrength, setPasswordStrength] = useState(0);
 
   const calculatePasswordStrength = (password: string) => {
@@ -43,6 +44,10 @@ const SignupForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!captchaToken) {
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       return;
@@ -288,6 +293,16 @@ const SignupForm: React.FC = () => {
             )}
           </motion.button>
         </form>
+
+        <div className="mt-6 flex justify-center">
+          <ReCAPTCHA
+            sitekey="6LfAOJcrAAAAANmEBoqPEB2dBT8iUddJoRl_KnUv"
+            onChange={setCaptchaToken}
+            onExpired={() => setCaptchaToken(null)}
+            theme="light"
+            size="normal"
+          />
+        </div>
 
         <div className="mt-8 text-center">
           <p className="text-gray-600">

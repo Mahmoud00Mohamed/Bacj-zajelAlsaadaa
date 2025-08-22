@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
+import ReCAPTCHA from "react-google-recaptcha";
 import {
   Mail,
   Lock,
@@ -29,15 +30,20 @@ const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
-  const [captchaToken] = useState("dummy-captcha-token");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (loginMethod === "email" && !captchaToken) {
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
       if (loginMethod === "email") {
-        await login(formData.email, formData.password, captchaToken);
+        await login(formData.email, formData.password, captchaToken || "");
         navigate("/");
       } else {
         await loginWithPhone(formData.phoneNumber);
@@ -237,6 +243,18 @@ const LoginForm: React.FC = () => {
             )}
           </motion.button>
         </form>
+
+        {loginMethod === "email" && (
+          <div className="mt-6 flex justify-center">
+            <ReCAPTCHA
+              sitekey="6LfAOJcrAAAAANmEBoqPEB2dBT8iUddJoRl_KnUv"
+              onChange={setCaptchaToken}
+              onExpired={() => setCaptchaToken(null)}
+              theme="light"
+              size="normal"
+            />
+          </div>
+        )}
 
         {loginMethod === "email" && (
           <>
