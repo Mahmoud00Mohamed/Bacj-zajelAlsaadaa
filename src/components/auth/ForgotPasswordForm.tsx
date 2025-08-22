@@ -28,7 +28,7 @@ const ForgotPasswordForm: React.FC = () => {
       // Get reCAPTCHA token
       const captchaToken = await executeRecaptcha();
       
-      await requestPasswordReset(email);
+      await requestPasswordReset(email, captchaToken);
       setIsSuccess(true);
     } catch (error) {
       console.error("Password reset error:", error);
