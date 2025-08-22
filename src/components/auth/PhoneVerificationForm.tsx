@@ -44,14 +44,7 @@ const PhoneVerificationForm: React.FC = () => {
 
     try {
       await verifyPhoneNumber(verificationCode);
-      // بعد تفعيل رقم الهاتف بنجاح، توجيه المستخدم للصفحة الرئيسية
-      navigate("/", { 
-        state: { 
-          message: isRtl 
-            ? "تم إنشاء حسابك بنجاح! مرحباً بك في زاجل السعادة" 
-            : "Account created successfully! Welcome to Zajil Al-Sa'adah" 
-        } 
-      });
+      navigate("/");
     } catch (error) {
       console.error("Phone verification error:", error);
     } finally {
@@ -64,8 +57,7 @@ const PhoneVerificationForm: React.FC = () => {
 
     setIsResending(true);
     try {
-      // إرسال رمز جديد بدون تمرير رقم الهاتف (سيستخدم tempPhoneNumber من قاعدة البيانات)
-      await sendPhoneVerification();
+      await sendPhoneVerification(phoneNumber);
       setCountdown(60);
     } catch (error) {
       console.error("Resend error:", error);
@@ -93,25 +85,12 @@ const PhoneVerificationForm: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-800 mb-2">
             {isRtl ? "تحقق من رقم الهاتف" : "Verify Phone Number"}
           </h1>
-          <p className="text-gray-600 mb-2">
-            {isRtl
-              ? "الخطوة الأخيرة لإكمال إنشاء حسابك"
-              : "Final step to complete your account setup"}
-          </p>
           <p className="text-gray-600 mb-4">
             {isRtl
-              ? "أدخل رمز التحقق المرسل إلى"
-              : "Enter the verification code sent to"}
+              ? "لقد أرسلنا رمز التحقق إلى"
+              : "We sent a verification code to"}
           </p>
           <p className="text-green-600 font-medium">{phoneNumber}</p>
-          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-800 text-sm">
-              {isRtl 
-                ? "بعد تفعيل رقم الهاتف، سيتم تفعيل حسابك بالكامل"
-                : "After phone verification, your account will be fully activated"
-              }
-            </p>
-          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">

@@ -158,7 +158,7 @@ function App() {
                       <Route 
                         path="/auth/verify-phone" 
                         element={
-                          <ProtectedRoute requireAuth={true}>
+                          <ProtectedRoute>
                             <PhoneVerificationPage />
                           </ProtectedRoute>
                         } 

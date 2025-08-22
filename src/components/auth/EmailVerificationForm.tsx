@@ -21,14 +21,11 @@ const EmailVerificationForm: React.FC = () => {
   const [isResending, setIsResending] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
 
   useEffect(() => {
     const emailFromState = location.state?.email;
-    const phoneFromState = location.state?.phoneNumber;
     if (emailFromState) {
       setEmail(emailFromState);
-      setPhoneNumber(phoneFromState || "");
     } else {
       navigate("/auth/login");
     }
@@ -47,14 +44,7 @@ const EmailVerificationForm: React.FC = () => {
 
     try {
       await verifyEmail(email, verificationCode);
-      // توجيه المستخدم لتفعيل رقم الهاتف بعد تأكيد البريد الإلكتروني
-      if (phoneNumber) {
-        navigate("/auth/verify-phone", {
-          state: { phoneNumber: phoneNumber }
-        });
-      } else {
-        navigate("/");
-      }
+      navigate("/");
     } catch (error) {
       console.error("Verification error:", error);
     } finally {
@@ -101,16 +91,6 @@ const EmailVerificationForm: React.FC = () => {
               : "We sent a verification code to"}
           </p>
           <p className="text-purple-600 font-medium">{email}</p>
-          {phoneNumber && (
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-blue-800 text-sm">
-                {isRtl 
-                  ? "بعد تأكيد البريد الإلكتروني، ستحتاج لتفعيل رقم الهاتف لإكمال إنشاء الحساب"
-                  : "After email verification, you'll need to verify your phone number to complete account setup"
-                }
-              </p>
-            </div>
-          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
