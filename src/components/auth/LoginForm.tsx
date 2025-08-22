@@ -71,21 +71,8 @@ const LoginForm: React.FC = () => {
   };
 
   const handleGoogleLogin = () => {
-    // فتح نافذة منبثقة لـ Google OAuth
-    const popup = window.open(
-      `${API_BASE_URL}/google`,
-      'google-oauth',
-      'width=500,height=600,scrollbars=yes,resizable=yes'
-    );
-    
-    // مراقبة النافذة المنبثقة
-    const checkClosed = setInterval(() => {
-      if (popup?.closed) {
-        clearInterval(checkClosed);
-        // إعادة تحميل الصفحة للتحقق من حالة المصادقة
-        window.location.reload();
-      }
-    }, 1000);
+    // إعادة توجيه مباشرة لـ Google OAuth في نفس الصفحة
+    window.location.href = `${API_BASE_URL}/google`;
   };
 
   return (
