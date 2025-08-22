@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { 
   User, 
-  Settings, 
   Shield, 
   Mail, 
   Trash2, 
@@ -11,20 +10,17 @@ import {
   CheckCircle,
   AlertCircle,
   Calendar,
-  MapPin
 } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
-import { useAuth } from '../../context/AuthContext';
 import ProfileForm from '../../components/user/ProfileForm';
 import PasswordUpdateForm from '../../components/user/PasswordUpdateForm';
 import EmailUpdateForm from '../../components/user/EmailUpdateForm';
 import DeleteAccountForm from '../../components/user/DeleteAccountForm';
 
 const ProfilePage: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
   const { profile, isLoading } = useUser();
-  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
 
   const tabs = [
