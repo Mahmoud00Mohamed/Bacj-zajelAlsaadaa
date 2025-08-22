@@ -5,7 +5,7 @@ import { Trash2, AlertTriangle, Lock, Type, Shield } from "lucide-react";
 import { useUser } from "../../context/UserContext";
 
 const DeleteAccountForm: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   const { deleteAccount, isLoading } = useUser();
 

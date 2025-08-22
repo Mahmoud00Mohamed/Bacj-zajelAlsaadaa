@@ -10,14 +10,13 @@ import {
   Edit3,
   Check,
   X,
-  Upload,
   UserCheck,
 } from "lucide-react";
 import { useUser } from "../../context/UserContext";
 import { useAuth } from "../../context/AuthContext";
 
 const ProfileForm: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   const { profile, updateProfile, uploadProfilePicture, isLoading } = useUser();
   const { sendPhoneVerification } = useAuth();

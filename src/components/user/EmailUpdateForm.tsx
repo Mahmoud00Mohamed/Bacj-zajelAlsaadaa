@@ -6,13 +6,11 @@ import {
   Lock,
   Send,
   CheckCircle,
-  ArrowRight,
-  ArrowLeft,
 } from "lucide-react";
 import { useUser } from "../../context/UserContext";
 
 const EmailUpdateForm: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   const { profile, requestEmailUpdate, verifyEmailUpdate, isLoading } =
     useUser();

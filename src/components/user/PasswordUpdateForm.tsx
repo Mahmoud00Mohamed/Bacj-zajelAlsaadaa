@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { Lock, Eye, EyeOff, Shield, ArrowRight, ArrowLeft } from "lucide-react";
+import { Lock, Eye, EyeOff, Shield } from "lucide-react";
 import { useUser } from "../../context/UserContext";
 
 const PasswordUpdateForm: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   const { updatePassword, isLoading } = useUser();
 
