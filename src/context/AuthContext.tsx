@@ -192,14 +192,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const requestPasswordReset = async (email: string) => {
+  const requestPasswordReset = async (email: string, captchaToken?: string) => {
     try {
       const response = await fetch(`${API_BASE_URL}/password-reset`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ 
+          email,
+          captchaToken: captchaToken || "dummy-captcha-token"
+        }),
       });
 
       const data = await response.json();

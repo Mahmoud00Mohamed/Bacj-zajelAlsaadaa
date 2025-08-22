@@ -4,11 +4,17 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Mail, ArrowRight, ArrowLeft, Key, CheckCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useRecaptcha } from "../../hooks/useRecaptcha";
 
 const ForgotPasswordForm: React.FC = () => {
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   const { requestPasswordReset } = useAuth();
+  
+  const { executeRecaptcha } = useRecaptcha({
+    siteKey: import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+    action: 'forgot_password'
+  });
 
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +25,10 @@ const ForgotPasswordForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await requestPasswordReset(email);
+      // Get reCAPTCHA token
+      const captchaToken = await executeRecaptcha();
+      
+      await requestPasswordReset(email, captchaToken);
       setIsSuccess(true);
     } catch (error) {
       console.error("Password reset error:", error);

@@ -13,12 +13,18 @@ import {
   UserPlus,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useRecaptcha } from "../../hooks/useRecaptcha";
 
 const SignupForm: React.FC = () => {
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   const navigate = useNavigate();
   const { signup } = useAuth();
+  
+  const { executeRecaptcha } = useRecaptcha({
+    siteKey: import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+    action: 'signup'
+  });
 
   const [formData, setFormData] = useState({
     name: "",
@@ -29,7 +35,6 @@ const SignupForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [captchaToken] = useState("dummy-captcha-token");
   const [passwordStrength, setPasswordStrength] = useState(0);
 
   const calculatePasswordStrength = (password: string) => {
@@ -51,6 +56,9 @@ const SignupForm: React.FC = () => {
     setIsLoading(true);
 
     try {
+      // Get reCAPTCHA token
+      const captchaToken = await executeRecaptcha();
+      
       await signup(
         formData.name,
         formData.email,

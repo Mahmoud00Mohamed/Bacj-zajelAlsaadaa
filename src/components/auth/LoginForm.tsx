@@ -12,6 +12,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useRecaptcha } from "../../hooks/useRecaptcha";
 
 const API_BASE_URL = "https://localhost:3002/api/auth";
 
@@ -20,6 +21,11 @@ const LoginForm: React.FC = () => {
   const isRtl = i18n.language === "ar";
   const navigate = useNavigate();
   const { login, loginWithPhone } = useAuth();
+  
+  const { executeRecaptcha } = useRecaptcha({
+    siteKey: import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+    action: 'login'
+  });
 
   const [formData, setFormData] = useState({
     email: "",
@@ -29,13 +35,18 @@ const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
-  const [captchaToken] = useState("dummy-captcha-token");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
+      // Get reCAPTCHA token for email login only
+      let captchaToken = "dummy-captcha-token";
+      if (loginMethod === "email") {
+        captchaToken = await executeRecaptcha();
+      }
+
       if (loginMethod === "email") {
         await login(formData.email, formData.password, captchaToken);
         navigate("/");

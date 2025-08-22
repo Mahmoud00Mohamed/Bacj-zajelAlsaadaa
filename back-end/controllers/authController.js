@@ -162,8 +162,15 @@ export const verifyEmail = async (req, res) => {
 };
 
 export const requestPasswordReset = async (req, res) => {
-  const { email } = req.body;
+  const { email, captchaToken } = req.body;
   try {
+    // Verify CAPTCHA if provided
+    if (captchaToken && captchaToken !== "dummy-captcha-token") {
+      if (!(await verifyCaptcha(captchaToken))) {
+        return res.status(400).json({ message: " CAPTCHA verification failed." });
+      }
+    }
+    
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: " User not found." });
