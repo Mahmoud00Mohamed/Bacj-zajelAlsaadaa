@@ -19,15 +19,41 @@ const GoogleCallbackPage: React.FC = () => {
 
       if (error) {
         console.error("Google authentication error:", error);
+        let errorMessage = "حدث خطأ أثناء تسجيل الدخول بجوجل";
+        
+        switch (error) {
+          case "authentication_failed":
+            errorMessage = "فشل في المصادقة مع جوجل";
+            break;
+          case "server_error":
+            errorMessage = "خطأ في الخادم، يرجى المحاولة مرة أخرى";
+            break;
+          case "google_auth_failed":
+            errorMessage = "تم إلغاء تسجيل الدخول بجوجل";
+            break;
+          default:
+            errorMessage = "حدث خطأ غير متوقع";
+        }
+        
+        // إظهار رسالة الخطأ للمستخدم
+        alert(errorMessage);
         setTimeout(() => navigate("/auth/login"), 3000);
         return;
       }
 
       if (accessToken) {
+        console.log("Access token received, storing and refreshing");
         localStorage.setItem("accessToken", accessToken);
-        await refreshToken();
-        setTimeout(() => navigate("/"), 2000);
+        
+        try {
+          await refreshToken();
+          setTimeout(() => navigate("/"), 1500);
+        } catch (refreshError) {
+          console.error("Error refreshing token:", refreshError);
+          setTimeout(() => navigate("/auth/login"), 2000);
+        }
       } else {
+        console.log("No access token received");
         setTimeout(() => navigate("/auth/login"), 3000);
       }
     };

@@ -25,17 +25,33 @@ export const googleAuth = passport.authenticate("google", {
 // رد الاتصال بعد المصادقة مع Google
 export const googleAuthCallback = async (req, res) => {
   try {
+    // التحقق من وجود المستخدم في req.user
+    if (!req.user) {
+      console.error("No user found in request after Google authentication");
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/auth/login?error=authentication_failed`
+      );
+    }
+
     const user = req.user;
+    console.log("Google OAuth user:", user._id);
+    
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
 
     // تخزين refreshToken في Redis
-    await redis.set(
-      `refreshToken:${user._id}`,
-      refreshToken,
-      "EX",
-      30 * 24 * 60 * 60
-    );
+    try {
+      await redis.set(
+        `refreshToken:${user._id}`,
+        refreshToken,
+        "EX",
+        30 * 24 * 60 * 60
+      );
+      console.log("Refresh token stored in Redis successfully");
+    } catch (redisError) {
+      console.error("Redis error:", redisError);
+      // Continue without Redis if it fails
+    }
 
     // إعداد الكوكيز
     res.cookie("refreshToken", refreshToken, {
@@ -44,12 +60,17 @@ export const googleAuthCallback = async (req, res) => {
       sameSite: "None",
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
+    
+    console.log("Redirecting to frontend with access token");
     // إعادة التوجيه إلى الواجهة الأمامية مع الـ accessToken
     res.redirect(
-      `${process.env.FRONTEND_URL}/authentication/callback.html?accessToken=${accessToken}`
+      `${process.env.FRONTEND_URL}/auth/google/callback?accessToken=${accessToken}`
     );
   } catch (err) {
-    res.status(500).json({ message: " Error during Google authentication." });
+    console.error("Google OAuth callback error:", err);
+    res.redirect(
+      `${process.env.FRONTEND_URL}/auth/login?error=server_error`
+    );
   }
 };
 
