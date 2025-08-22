@@ -36,18 +36,6 @@ export const googleAuthCallback = async (req, res) => {
     const user = req.user;
     console.log("Google OAuth user:", user._id);
     
-    // التحقق من وجود رقم الهاتف موثق
-    if (!user.phoneNumber || !user.isPhoneVerified) {
-      console.log("User needs phone verification");
-      // إنشاء temporary token للمستخدم لإكمال التسجيل
-      const tempToken = generateAccessToken(user._id);
-      
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/auth/verify-phone?tempToken=${tempToken}&fromGoogle=true`
-      );
-    }
-    
-    // إذا كان رقم الهاتف موثق، إكمال تسجيل الدخول
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
 
@@ -182,17 +170,6 @@ export const verifyEmail = async (req, res) => {
     user.isVerified = !0;
     user.verificationCode = undefined;
     await user.save();
-    
-    // التحقق من وجود رقم الهاتف
-    if (!user.phoneNumber || !user.isPhoneVerified) {
-      return res.status(200).json({
-        message: " Email verified successfully. Please add and verify your phone number to complete registration.",
-        requiresPhoneVerification: true,
-        userId: user._id
-      });
-    }
-    
-    // إذا كان رقم الهاتف موثق، إكمال تسجيل الدخول
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
     
@@ -217,7 +194,7 @@ export const verifyEmail = async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
     res.status(200).json({
-      message: " Registration completed successfully.",
+      message: " Email successfully verified.",
       accessToken,
     });
   } catch (err) {
@@ -527,39 +504,6 @@ export const verifyPhoneNumber = async (req, res) => {
     user.phoneVerificationAttempts = 0;
     user.lastPhoneVerificationTime = undefined;
     await user.save();
-
-    // إذا كان المستخدم قد تحقق من البريد الإلكتروني أيضاً، إكمال التسجيل
-    if (user.isVerified) {
-      const accessToken = generateAccessToken(user._id);
-      const refreshToken = generateRefreshToken(user._id);
-      
-      // تخزين refreshToken مع fallback
-      try {
-        await redis.set(
-          `refreshToken:${user._id}`,
-          refreshToken,
-          "EX",
-          30 * 24 * 60 * 60
-        );
-      } catch (redisError) {
-        console.warn("Redis not available, storing refresh token in user document");
-        user.refreshToken = refreshToken;
-        await user.save();
-      }
-      
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "None",
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-      });
-      
-      return res.status(200).json({
-        message: "Registration completed successfully.",
-        accessToken,
-        registrationComplete: true
-      });
-    }
 
     res.status(200).json({
       message: "Phone number verified successfully.",
